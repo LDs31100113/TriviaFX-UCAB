@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.ucab.trivia.controlador.SeleccionJugadorController">
+    <top>
+        <Label text="Selección de Jugadores" BorderPane.alignment="CENTER">
+            <font><Font name="System Bold" size="24.0" /></font>
+            <BorderPane.margin><Insets top="10.0" /></BorderPane.margin>
+        </Label>
+    </top>
+    <left>
+        <VBox alignment="CENTER" prefHeight="200.0" prefWidth="250.0" spacing="5.0" BorderPane.alignment="CENTER">
+            <children>
+                <Label text="Jugadores Disponibles" />
+                <ListView fx:id="listaDisponibles" prefHeight="250.0" prefWidth="200.0" />
+            </children>
+            <BorderPane.margin><Insets left="10.0" /></BorderPane.margin>
+        </VBox>
+    </left>
+    <right>
+        <VBox alignment="CENTER" prefHeight="200.0" prefWidth="250.0" spacing="5.0" BorderPane.alignment="CENTER">
+            <children>
+                <Label text="Jugadores Seleccionados (1-6)" />
+                <ListView fx:id="listaSeleccionados" prefHeight="250.0" prefWidth="200.0" />
+            </children>
+            <BorderPane.margin><Insets right="10.0" /></BorderPane.margin>
+        </VBox>
+    </right>
+    <center>
+        <VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0" spacing="10.0" BorderPane.alignment="CENTER">
+            <children>
+                <Button onAction="#onAgregarJugador" text="&gt;" />
+                <Button onAction="#onQuitarJugador" text="&lt;" />
+            </children>
+        </VBox>
+    </center>
+    <bottom>
+        <HBox alignment="CENTER_RIGHT" prefHeight="60.0" prefWidth="200.0" spacing="10.0" BorderPane.alignment="CENTER">
+            <children>
+                <Button onAction="#onJugar" prefWidth="80.0" text="Jugar" />
+                <Button onAction="#onRegresar" prefWidth="80.0" text="Regresar" />
+                <Button onAction="#onSalir" prefWidth="80.0" text="Salir" />
+            </children>
+            <padding><Insets right="10.0" /></padding>
+        </HBox>
+    </bottom>
+</BorderPane>
