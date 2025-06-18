@@ -4,17 +4,22 @@ import com.ucab.trivia.GestorVistas;
 import com.ucab.trivia.modelo.ServicioDatos;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 
+/**
+ * Controlador para la vista del menú principal (MenuPrincipal.fxml).
+ * Maneja la navegación a las otras ventanas de la aplicación.
+ */
 public class MenuPrincipalController {
     @FXML
     private Button btnPartidaGuardada;
-    private final ServicioDatos servicioDatos = new ServicioDatos();
+
+    private ServicioDatos servicioDatos;
 
     @FXML
     public void initialize() {
-        // Deshabilitar el botón de cargar si no existe una partida guardada
+        this.servicioDatos = new ServicioDatos();
+        // Deshabilitar el botón de cargar si no existe un archivo de partida guardada
         btnPartidaGuardada.setDisable(!servicioDatos.existePartidaGuardada());
     }
 
@@ -25,7 +30,9 @@ public class MenuPrincipalController {
 
     @FXML
     private void onPartidaGuardada() {
-        // La lógica de carga se pasa a la ventana de juego
+        // **LLAMADA CORREGIDA**
+        // Llama a mostrarVentanaJuego pasando null para la lista de jugadores
+        // y 'true' para indicar que se debe cargar una partida.
         GestorVistas.mostrarVentanaJuego(null, true);
     }
 
