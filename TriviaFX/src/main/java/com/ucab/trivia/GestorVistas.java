@@ -12,6 +12,7 @@ import java.util.List;
 
 /**
  * Clase de utilidad para gestionar la navegación entre las diferentes vistas (escenas) de la aplicación.
+ * Versión actualizada para ajustar el tamaño de la ventana en cada cambio de escena.
  */
 public class GestorVistas {
     private static Stage stage;
@@ -20,15 +21,27 @@ public class GestorVistas {
         GestorVistas.stage = stage;
     }
 
+    /**
+     * Carga el archivo FXML especificado y lo establece como la raíz de la escena actual.
+     * **Ahora también ajusta el tamaño de la ventana y la centra.**
+     * @param root El nodo raíz de la nueva vista cargada desde el FXML.
+     */
     private static void cambiarEscena(Parent root) {
         if (stage.getScene() == null) {
             stage.setScene(new Scene(root));
         } else {
             stage.getScene().setRoot(root);
         }
+
+        // --- INICIO DE LA CORRECCIÓN ---
+        // Estas dos líneas solucionan el problema del contenido "cortado".
+        stage.sizeToScene(); // Ajusta el tamaño de la ventana al tamaño preferido de la nueva vista.
+        stage.centerOnScreen(); // Opcional: Centra la ventana redimensionada en la pantalla.
+        // --- FIN DE LA CORRECCIÓN ---
     }
 
     private static FXMLLoader getLoader(String fxml) {
+        // La ruta ahora es relativa a la clase App, que está en com.ucab.trivia
         return new FXMLLoader(App.class.getResource("vista/" + fxml + ".fxml"));
     }
 
@@ -49,21 +62,17 @@ public class GestorVistas {
     }
 
     /**
-     * **MÉTODO CORREGIDO**
-     * Ahora acepta dos parámetros: la lista de jugadores (para una partida nueva)
-     * y un booleano para indicar si se debe cargar una partida guardada.
+     * Muestra la ventana del juego, pasando los jugadores seleccionados al controlador.
      * @param jugadoresSeleccionados La lista de perfiles de jugadores para una nueva partida. Puede ser null si se carga una partida.
-     * @param cargarPartida true si se debe cargar la última partida guardada, false si es una nueva partida.
+     * @param esPartidaCargada true si se debe cargar la última partida guardada, false si es una nueva partida.
      */
-    public static void mostrarVentanaJuego(List<PerfilJugador> jugadoresSeleccionados, boolean cargarPartida) {
+    public static void mostrarVentanaJuego(List<PerfilJugador> jugadoresSeleccionados, boolean esPartidaCargada) {
         try {
             FXMLLoader loader = getLoader("VentanaJuego");
             Parent root = loader.load();
 
-            // Obtener el controlador de la ventana de juego
             VentanaJuegoController controller = loader.getController();
-            // Llamar a su método de inicialización pasándole los datos necesarios
-            controller.iniciarJuego(jugadoresSeleccionados, cargarPartida);
+            controller.iniciarJuego(jugadoresSeleccionados, esPartidaCargada);
 
             cambiarEscena(root);
         } catch (IOException e) {
