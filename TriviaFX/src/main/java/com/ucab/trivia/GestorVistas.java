@@ -12,7 +12,7 @@ import java.util.List;
 
 /**
  * Clase de utilidad para gestionar la navegación entre las diferentes vistas (escenas) de la aplicación.
- * Versión actualizada para ajustar el tamaño de la ventana en cada cambio de escena.
+ * Versión actualizada para asegurar que la UI se muestre antes de realizar tareas pesadas.
  */
 public class GestorVistas {
     private static Stage stage;
@@ -21,27 +21,17 @@ public class GestorVistas {
         GestorVistas.stage = stage;
     }
 
-    /**
-     * Carga el archivo FXML especificado y lo establece como la raíz de la escena actual.
-     * **Ahora también ajusta el tamaño de la ventana y la centra.**
-     * @param root El nodo raíz de la nueva vista cargada desde el FXML.
-     */
     private static void cambiarEscena(Parent root) {
         if (stage.getScene() == null) {
             stage.setScene(new Scene(root));
         } else {
             stage.getScene().setRoot(root);
         }
-
-        // --- INICIO DE LA CORRECCIÓN ---
-        // Estas dos líneas solucionan el problema del contenido "cortado".
-        stage.sizeToScene(); // Ajusta el tamaño de la ventana al tamaño preferido de la nueva vista.
-        stage.centerOnScreen(); // Opcional: Centra la ventana redimensionada en la pantalla.
-        // --- FIN DE LA CORRECCIÓN ---
+        stage.sizeToScene();
+        stage.centerOnScreen();
     }
 
     private static FXMLLoader getLoader(String fxml) {
-        // La ruta ahora es relativa a la clase App, que está en com.ucab.trivia
         return new FXMLLoader(App.class.getResource("vista/" + fxml + ".fxml"));
     }
 
@@ -62,19 +52,24 @@ public class GestorVistas {
     }
 
     /**
-     * Muestra la ventana del juego, pasando los jugadores seleccionados al controlador.
-     * @param jugadoresSeleccionados La lista de perfiles de jugadores para una nueva partida. Puede ser null si se carga una partida.
-     * @param esPartidaCargada true si se debe cargar la última partida guardada, false si es una nueva partida.
+     * **MÉTODO CORREGIDO**
+     * Ahora, primero cambia la escena para que la ventana aparezca, y DESPUÉS
+     * llama al método de inicialización del controlador que hace el trabajo pesado.
      */
     public static void mostrarVentanaJuego(List<PerfilJugador> jugadoresSeleccionados, boolean esPartidaCargada) {
         try {
             FXMLLoader loader = getLoader("VentanaJuego");
             Parent root = loader.load();
-
             VentanaJuegoController controller = loader.getController();
-            controller.iniciarJuego(jugadoresSeleccionados, esPartidaCargada);
 
+            // --- INICIO DE LA CORRECCIÓN ---
+            // 1. Mostrar la nueva ventana INMEDIATAMENTE.
             cambiarEscena(root);
+
+            // 2. DESPUÉS de que la ventana es visible, hacer el trabajo pesado.
+            controller.iniciarJuego(jugadoresSeleccionados, esPartidaCargada);
+            // --- FIN DE LA CORRECCIÓN ---
+
         } catch (IOException e) {
             System.err.println("Error al cargar la vista de juego: " + e.getMessage());
             e.printStackTrace();
