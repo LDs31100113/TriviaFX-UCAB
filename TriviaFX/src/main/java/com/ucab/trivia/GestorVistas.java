@@ -2,6 +2,7 @@ package com.ucab.trivia;
 
 import com.ucab.trivia.controlador.VentanaJuegoController;
 import com.ucab.trivia.modelo.PerfilJugador;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -10,10 +11,6 @@ import javafx.stage.Stage;
 import java.io.IOException;
 import java.util.List;
 
-/**
- * Clase de utilidad para gestionar la navegación entre las diferentes vistas (escenas) de la aplicación.
- * Versión actualizada para asegurar que la UI se muestre antes de realizar tareas pesadas.
- */
 public class GestorVistas {
     private static Stage stage;
 
@@ -51,24 +48,19 @@ public class GestorVistas {
         }
     }
 
-    /**
-     * **MÉTODO CORREGIDO**
-     * Ahora, primero cambia la escena para que la ventana aparezca, y DESPUÉS
-     * llama al método de inicialización del controlador que hace el trabajo pesado.
-     */
     public static void mostrarVentanaJuego(List<PerfilJugador> jugadoresSeleccionados, boolean esPartidaCargada) {
         try {
             FXMLLoader loader = getLoader("VentanaJuego");
             Parent root = loader.load();
             VentanaJuegoController controller = loader.getController();
 
-            // --- INICIO DE LA CORRECCIÓN ---
+            // --- CORRECCIÓN ---
             // 1. Mostrar la nueva ventana INMEDIATAMENTE.
             cambiarEscena(root);
 
-            // 2. DESPUÉS de que la ventana es visible, hacer el trabajo pesado.
-            controller.iniciarJuego(jugadoresSeleccionados, esPartidaCargada);
-            // --- FIN DE LA CORRECCIÓN ---
+            // 2. Usar Platform.runLater para diferir el trabajo pesado de inicialización,
+            // asegurando que la UI sea responsiva.
+            Platform.runLater(() -> controller.iniciarJuego(jugadoresSeleccionados, esPartidaCargada));
 
         } catch (IOException e) {
             System.err.println("Error al cargar la vista de juego: " + e.getMessage());
