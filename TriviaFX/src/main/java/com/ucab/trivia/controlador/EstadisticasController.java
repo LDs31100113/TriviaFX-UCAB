@@ -13,7 +13,7 @@ import javafx.scene.control.cell.PropertyValueFactory;
 
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map; // <<--- IMPORTACIÓN AÑADIDA PARA CORREGIR EL ERROR
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class EstadisticasController {
@@ -36,6 +36,7 @@ public class EstadisticasController {
         colJugadas.setCellValueFactory(new PropertyValueFactory<>("partidasJugadas"));
 
         colCorrectas.setCellValueFactory(cellData -> {
+            if (cellData.getValue().getCorrectasPorCategoria() == null) return new SimpleStringProperty("");
             Map<String, Integer> mapa = cellData.getValue().getCorrectasPorCategoria().entrySet().stream()
                     .collect(Collectors.toMap(e -> e.getKey().getNombreMostrado().substring(0,1), Map.Entry::getValue));
             return new SimpleStringProperty(mapa.toString());
