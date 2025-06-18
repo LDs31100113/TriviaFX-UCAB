@@ -33,13 +33,11 @@ public class Juego {
             indiceJugadorActual = 0;
             return;
         }
-        // En una GUI, esto debería ser un proceso visual, pero para la lógica, un inicio aleatorio es suficiente.
         indiceJugadorActual = (int) (Math.random() * jugadores.size());
     }
 
     public int lanzarDado() {
         int lanzamiento = dado.lanzar();
-        // Regla de número impar + 2
         if(lanzamiento % 2 != 0) {
             return lanzamiento + 2;
         }
@@ -48,10 +46,7 @@ public class Juego {
 
     public void moverJugador(Jugador jugador, int pasos, boolean eligeEntrarRayo) {
         if(jugador.getPosicionActual().getTipo() == Posicion.TipoLugar.CENTRO) {
-            // La salida del centro es un caso especial manejado por el controlador
-            // donde se elige una dirección (un rayo) y se mueve 1 paso.
-            // Para simplificar, asumimos que se mueve a una casilla de rayo inicial.
-            int rayoElegido = (int) (Math.random() * TableroGrafico.NUMERO_RAYOS);
+            int rayoElegido = (int) (Math.random() * 6);
             int indiceSalida = (rayoElegido * 7) + (pasos - 1) % 7;
             jugador.setPosicionActual(Posicion.enCirculo(indiceSalida % TableroGrafico.NUMERO_CASILLAS_CIRCULO));
         } else {
@@ -65,25 +60,20 @@ public class Juego {
 
     public Jugador determinarGanadorPorRendicion() {
         List<Jugador> jugadoresActivos = getJugadoresActivos();
-        // Si solo queda un jugador activo, ese gana.
         if (jugadoresActivos.size() == 1) {
             return jugadoresActivos.get(0);
         }
-        // Si ya no quedan jugadores activos (todos se rindieron).
         if (jugadoresActivos.isEmpty()) {
-            // Gana el que tenga más categorías. En caso de empate, el que tenga menor tiempo.
             return jugadores.stream()
                     .max(Comparator.comparingInt((Jugador j) -> j.getFicha().getCategoriasObtenidasCount())
-                            .thenComparingLong(j -> -j.getTiempoTotalEnPartidaMs())) // Negativo para que menor tiempo sea mayor valor
+                            .thenComparingLong(j -> -j.getTiempoTotalEnPartidaMs()))
                     .orElse(null);
         }
-        // Si quedan más de un jugador activo, el juego continúa.
         return null;
     }
 
     public void pasarTurno() {
-        if(getJugadoresActivos().isEmpty()) return; // Si no hay jugadores activos, no hacer nada.
-        // Avanzar al siguiente jugador en la lista, saltando a los que se han rendido.
+        if(getJugadoresActivos().isEmpty()) return;
         do {
             indiceJugadorActual = (indiceJugadorActual + 1) % jugadores.size();
         } while (getJugadorActual().isEstaRendido());
@@ -99,10 +89,15 @@ public class Juego {
     }
     public TableroGrafico getTablero() { return tablero; }
 
-    public PreguntaOriginal getPreguntaParaPosicion(Posicion pos) {
-        if(pos == null || pos.getTipo() == Posicion.TipoLugar.CENTRO) return null;
-        Casilla c = tablero.getCasillaEnPosicion(pos);
-        if (c == null || c.getCategoria() == null) return null;
-        return servicioPreguntas.seleccionarPreguntaAleatoria(c.getCategoria());
+    /**
+     * **MÉTODO CORREGIDO**
+     * Obtiene una pregunta aleatoria para una categoría dada.
+     * El controlador le pasará la categoría de la casilla.
+     * @param categoria La categoría de la cual se necesita una pregunta.
+     * @return una PreguntaOriginal o null si no hay preguntas.
+     */
+    public PreguntaOriginal getPreguntaParaCategoria(CategoriaTrivia categoria) {
+        if (categoria == null) return null;
+        return servicioPreguntas.seleccionarPreguntaAleatoria(categoria);
     }
 }
