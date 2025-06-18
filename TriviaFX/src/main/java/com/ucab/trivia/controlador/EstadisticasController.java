@@ -13,6 +13,7 @@ import javafx.scene.control.cell.PropertyValueFactory;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map; // <<--- IMPORTACIÓN AÑADIDA PARA CORREGIR EL ERROR
 import java.util.stream.Collectors;
 
 public class EstadisticasController {
@@ -29,13 +30,11 @@ public class EstadisticasController {
 
     @FXML
     public void initialize() {
-        // Configurar cómo cada columna obtiene su valor de un objeto EstadisticaGlobal
         colAlias.setCellValueFactory(new PropertyValueFactory<>("alias"));
         colGanadas.setCellValueFactory(new PropertyValueFactory<>("partidasGanadas"));
         colPerdidas.setCellValueFactory(new PropertyValueFactory<>("partidasPerdidas"));
         colJugadas.setCellValueFactory(new PropertyValueFactory<>("partidasJugadas"));
 
-        // Para columnas con formato personalizado
         colCorrectas.setCellValueFactory(cellData -> {
             Map<String, Integer> mapa = cellData.getValue().getCorrectasPorCategoria().entrySet().stream()
                     .collect(Collectors.toMap(e -> e.getKey().getNombreMostrado().substring(0,1), Map.Entry::getValue));
@@ -52,7 +51,6 @@ public class EstadisticasController {
 
     private void cargarYMostrarEstadisticas() {
         List<EstadisticaGlobal> estadisticas = servicioDatos.cargarEstadisticas();
-        // Ordenar para mostrar un ranking (ej. por partidas ganadas)
         estadisticas.sort(Comparator.comparingInt(EstadisticaGlobal::getPartidasGanadas).reversed());
 
         ObservableList<EstadisticaGlobal> datosObservables = FXCollections.observableArrayList(estadisticas);

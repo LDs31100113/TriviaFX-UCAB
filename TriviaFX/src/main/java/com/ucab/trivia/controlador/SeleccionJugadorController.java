@@ -10,6 +10,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.ListView;
 import javafx.application.Platform;
 
+import java.util.ArrayList; // <<--- IMPORTACIÓN AÑADIDA PARA CORREGIR EL ERROR
 import java.util.List;
 
 public class SeleccionJugadorController {
