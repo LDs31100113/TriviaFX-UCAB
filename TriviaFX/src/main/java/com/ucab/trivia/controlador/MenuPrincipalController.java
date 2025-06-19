@@ -6,39 +6,36 @@ import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 
-/**
- * Controlador para la vista del menú principal (MenuPrincipal.fxml).
- * Maneja la navegación a las otras ventanas de la aplicación.
- */
 public class MenuPrincipalController {
-    @FXML
-    private Button btnPartidaGuardada;
+    @FXML private Button btnPartidaGuardada;
 
     private ServicioDatos servicioDatos;
+    private GestorVistas gestorVistas; // Atributo para guardar la instancia
+
+    // Método para que GestorVistas pueda inyectar la dependencia
+    public void setGestorVistas(GestorVistas gestorVistas) {
+        this.gestorVistas = gestorVistas;
+    }
 
     @FXML
     public void initialize() {
         this.servicioDatos = new ServicioDatos();
-        // Deshabilitar el botón de cargar si no existe un archivo de partida guardada
         btnPartidaGuardada.setDisable(!servicioDatos.existePartidaGuardada());
     }
 
     @FXML
     private void onNuevaPartida() {
-        GestorVistas.mostrarSeleccionJugador();
+        gestorVistas.mostrarSeleccionJugador(); // Se usa la instancia
     }
 
     @FXML
     private void onPartidaGuardada() {
-        // **LLAMADA CORREGIDA**
-        // Llama a mostrarVentanaJuego pasando null para la lista de jugadores
-        // y 'true' para indicar que se debe cargar una partida.
-        GestorVistas.mostrarVentanaJuego(null, true);
+        gestorVistas.mostrarVentanaJuego(null, true); // Se usa la instancia
     }
 
     @FXML
     private void onEstadisticas() {
-        GestorVistas.mostrarEstadisticas();
+        gestorVistas.mostrarEstadisticas(); // Se usa la instancia
     }
 
     @FXML

@@ -27,6 +27,11 @@ public class EstadisticasController {
     @FXML private TableColumn<EstadisticaGlobal, String> colTiempo;
 
     private final ServicioDatos servicioDatos = new ServicioDatos();
+    private GestorVistas gestorVistas;
+
+    public void setGestorVistas(GestorVistas gestorVistas) {
+        this.gestorVistas = gestorVistas;
+    }
 
     @FXML
     public void initialize() {
@@ -60,6 +65,6 @@ public class EstadisticasController {
 
     @FXML
     private void onRegresar() {
-        GestorVistas.mostrarMenuPrincipal();
+        gestorVistas.mostrarMenuPrincipal();
     }
 }

@@ -10,19 +10,22 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.ListView;
 import javafx.application.Platform;
 
-import java.util.ArrayList; // <<--- IMPORTACIÓN AÑADIDA PARA CORREGIR EL ERROR
+import java.util.ArrayList;
 import java.util.List;
 
 public class SeleccionJugadorController {
 
-    @FXML
-    private ListView<PerfilJugador> listaDisponibles;
-    @FXML
-    private ListView<PerfilJugador> listaSeleccionados;
+    @FXML private ListView<PerfilJugador> listaDisponibles;
+    @FXML private ListView<PerfilJugador> listaSeleccionados;
 
     private final ServicioDatos servicioDatos = new ServicioDatos();
     private final ObservableList<PerfilJugador> jugadoresDisponibles = FXCollections.observableArrayList();
     private final ObservableList<PerfilJugador> jugadoresSeleccionados = FXCollections.observableArrayList();
+    private GestorVistas gestorVistas; // Atributo para guardar la instancia
+
+    public void setGestorVistas(GestorVistas gestorVistas) {
+        this.gestorVistas = gestorVistas;
+    }
 
     @FXML
     public void initialize() {
@@ -58,12 +61,12 @@ public class SeleccionJugadorController {
             mostrarAlerta("Error de Selección", "Debe seleccionar entre 1 y 6 jugadores para comenzar.");
             return;
         }
-        GestorVistas.mostrarVentanaJuego(new ArrayList<>(jugadoresSeleccionados), false);
+        gestorVistas.mostrarVentanaJuego(new ArrayList<>(jugadoresSeleccionados), false);
     }
 
     @FXML
     private void onRegresar() {
-        GestorVistas.mostrarMenuPrincipal();
+        gestorVistas.mostrarMenuPrincipal();
     }
 
     @FXML
