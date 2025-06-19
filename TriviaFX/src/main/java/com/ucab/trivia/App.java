@@ -5,12 +5,16 @@ import javafx.stage.Stage;
 import java.io.IOException;
 
 public class App extends Application {
+
     @Override
     public void start(Stage primaryStage) throws IOException {
-        GestorVistas.setStage(primaryStage);
+        // 1. Se crea la única instancia de GestorVistas, pasándole la ventana principal (Stage).
+        GestorVistas gestorVistas = new GestorVistas(primaryStage);
+
+        // 2. Se configura el título y se le pide al gestor que muestre la primera vista.
         primaryStage.setResizable(false);
         primaryStage.setTitle("TRIVIA-UCAB");
-        GestorVistas.mostrarMenuPrincipal();
+        gestorVistas.mostrarMenuPrincipal(); // Se usa la instancia, no un método estático
         primaryStage.show();
     }
 
