@@ -67,7 +67,7 @@ public class VentanaJuegoController {
         dibujarFichasJugadores();
         actualizarVistaCompleta();
         labelInfoJuego.setText("¡Partida iniciada! Es el turno de " + juego.getJugadorActual().getAlias() + ".");
-        guardarPartidaActual();
+        juego.guardarEstadoActualDelJuego();
     }
 
     private void dibujarTablero() {
@@ -244,7 +244,7 @@ public class VentanaJuegoController {
                     turnoEnProceso = false;
                     actualizarVistaCompleta();
                 }
-                guardarPartidaActual();
+                juego.guardarEstadoActualDelJuego();
                 return;
             }
 
@@ -253,7 +253,7 @@ public class VentanaJuegoController {
                 labelInfoJuego.setText("¡Casilla Especial! Vuelves a lanzar.");
                 turnoEnProceso = false;
                 actualizarVistaCompleta();
-                guardarPartidaActual();
+                juego.guardarEstadoActualDelJuego();
                 return;
             }
 
@@ -263,7 +263,7 @@ public class VentanaJuegoController {
                 juego.pasarTurno();
                 turnoEnProceso = false;
                 actualizarVistaCompleta();
-                guardarPartidaActual();
+                juego.guardarEstadoActualDelJuego();
                 return;
             }
 
@@ -273,6 +273,7 @@ public class VentanaJuegoController {
 
             if (acerto) {
                 jugadorActual.registrarRespuestaCorrecta(casillaLlegada.getCategoria(), tiempoFin - tiempoInicio);
+
                 if (!jugadorActual.getFicha().haObtenidoCategoria(casillaLlegada.getCategoria())) {
                     jugadorActual.getFicha().marcarCategoriaObtenida(casillaLlegada.getCategoria());
                     labelInfoJuego.setText("¡Correcto! Quesito de " + casillaLlegada.getCategoria() + " obtenido.");
@@ -292,7 +293,7 @@ public class VentanaJuegoController {
                 turnoEnProceso = false;
             }
             actualizarVistaCompleta();
-            guardarPartidaActual();
+            juego.guardarEstadoActualDelJuego();
         });
     }
 
@@ -339,7 +340,7 @@ public class VentanaJuegoController {
                 juego.pasarTurno();
                 turnoEnProceso = false;
                 actualizarVistaCompleta();
-                guardarPartidaActual();
+                juego.guardarEstadoActualDelJuego();
             }
         } else {
             labelInfoJuego.setText("Elección cancelada. Sigues en el centro.");
@@ -365,7 +366,7 @@ public class VentanaJuegoController {
             } else {
                 juego.pasarTurno();
                 actualizarVistaCompleta();
-                guardarPartidaActual();
+                juego.guardarEstadoActualDelJuego();
             }
         }
     }
@@ -391,13 +392,6 @@ public class VentanaJuegoController {
             estGlobal.agregarEstadisticasDePartida(jugadorDePartida.getCorrectasEnPartida(), jugadorDePartida.getTiempoTotalEnPartidaMs());
         }
         servicioDatos.guardarEstadisticas(estadisticasGlobales);
-    }
-
-    private void guardarPartidaActual() {
-        if(juego != null) {
-            EstadoJuegoGuardado estado = new EstadoJuegoGuardado(juego.getJugadores(), juego.getJugadores().indexOf(juego.getJugadorActual()));
-            servicioDatos.guardarPartida(estado);
-        }
     }
 
     private boolean mostrarDialogoPregunta(PreguntaOriginal pregunta) {
