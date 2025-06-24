@@ -58,4 +58,19 @@ public class Posicion {
             default: return super.hashCode();
         }
     }
+
+    /**
+     * **MÉTODO CORREGIDO**
+     * Devuelve una representación en String de la Posicion, útil para la UI.
+     * @return Un String legible que representa la posición.
+     */
+    @Override
+    public String toString() {
+        switch (tipo) {
+            case CENTRO: return "Centro";
+            case CIRCULO: return "Círculo, Casilla " + (indiceCirculo + 1); // +1 para que sea más natural (1-42)
+            case RAYO: return "Rayo " + (indiceRayo + 1) + ", Casilla " + (indiceEnRayo + 1); // +1 para que sea más natural
+            default: return "Desconocida";
+        }
+    }
 }

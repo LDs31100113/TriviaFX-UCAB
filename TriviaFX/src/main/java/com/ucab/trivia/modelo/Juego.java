@@ -11,11 +11,13 @@ public class Juego {
     private final TableroGrafico tablero;
     private final Dado dado;
     private final ServicioPreguntasJuego servicioPreguntas;
+    private final ServicioDatos servicioDatos;
 
     public Juego(List<PerfilJugador> perfiles) {
         this.tablero = new TableroGrafico();
         this.dado = new Dado();
         this.servicioPreguntas = new ServicioPreguntasJuego();
+        this.servicioDatos = new ServicioDatos();
         this.jugadores = perfiles.stream().map(Jugador::new).collect(Collectors.toList());
         determinarPrimerJugador();
     }
@@ -24,8 +26,16 @@ public class Juego {
         this.tablero = new TableroGrafico();
         this.dado = new Dado();
         this.servicioPreguntas = new ServicioPreguntasJuego();
+        this.servicioDatos = new ServicioDatos();
         this.jugadores = estado.getJugadores();
         this.indiceJugadorActual = estado.getIndiceJugadorActual();
+    }
+
+    public void guardarEstadoActualDelJuego() {
+        if (jugadores != null && !jugadores.isEmpty()) {
+            EstadoJuegoGuardado estadoActual = new EstadoJuegoGuardado(new ArrayList<>(jugadores), indiceJugadorActual);
+            servicioDatos.guardarPartida(estadoActual);
+        }
     }
 
     private void determinarPrimerJugador() {
@@ -36,12 +46,13 @@ public class Juego {
         indiceJugadorActual = (int) (Math.random() * jugadores.size());
     }
 
+    /**
+     * **MÉTODO CORREGIDO**
+     * Ahora devuelve el valor exacto del dado, sin ninguna bonificación.
+     * @return El resultado del dado (un número del 1 al 6).
+     */
     public int lanzarDado() {
-        int lanzamiento = dado.lanzar();
-        if(lanzamiento % 2 != 0) {
-            return lanzamiento + 2;
-        }
-        return lanzamiento;
+        return dado.lanzar();
     }
 
     public void moverJugador(Jugador jugador, int pasos, boolean eligeEntrarRayo) {
@@ -89,15 +100,10 @@ public class Juego {
     }
     public TableroGrafico getTablero() { return tablero; }
 
-    /**
-     * **MÉTODO CORREGIDO**
-     * Obtiene una pregunta aleatoria para una categoría dada.
-     * El controlador le pasará la categoría de la casilla.
-     * @param categoria La categoría de la cual se necesita una pregunta.
-     * @return una PreguntaOriginal o null si no hay preguntas.
-     */
-    public PreguntaOriginal getPreguntaParaCategoria(CategoriaTrivia categoria) {
-        if (categoria == null) return null;
-        return servicioPreguntas.seleccionarPreguntaAleatoria(categoria);
+    public PreguntaOriginal getPreguntaParaPosicion(Posicion pos) {
+        if(pos == null || pos.getTipo() == Posicion.TipoLugar.CENTRO) return null;
+        Casilla c = tablero.getCasillaEnPosicion(pos);
+        if (c == null || c.getCategoria() == null) return null;
+        return servicioPreguntas.seleccionarPreguntaAleatoria(c.getCategoria());
     }
 }

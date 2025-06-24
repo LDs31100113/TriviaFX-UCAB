@@ -5,7 +5,7 @@ import java.util.Map;
 
 /**
  * Representa la ficha hexagonal de un jugador, que tiene espacios
- * para cada categoría del juego. El objetivo es rellenar todos los espacios.
+ * para cada categoría del juego.
  */
 public class Ficha {
     private Map<CategoriaTrivia, Boolean> categoriasObtenidas;
@@ -35,20 +35,11 @@ public class Ficha {
     }
 
     /**
-     * Rellena todos los espacios de la ficha, marcando todas las categorías como obtenidas.
-     * Utilizado para la regla especial de las esquinas radiales.
-     */
-    public void rellenarTodasLasCategorias() {
-        for (CategoriaTrivia cat : CategoriaTrivia.values()) {
-            this.categoriasObtenidas.put(cat, true);
-        }
-    }
-
-    /**
      * Verifica si todos los espacios de la ficha han sido obtenidos.
      * @return true si la ficha está completa, false en caso contrario.
      */
     public boolean estaCompleta() {
+        if (categoriasObtenidas.isEmpty()) return false;
         return this.categoriasObtenidas.values().stream().allMatch(obtenida -> obtenida);
     }
 
