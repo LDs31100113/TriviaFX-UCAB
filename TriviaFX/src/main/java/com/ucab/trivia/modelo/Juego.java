@@ -46,11 +46,6 @@ public class Juego {
         indiceJugadorActual = (int) (Math.random() * jugadores.size());
     }
 
-    /**
-     * **MÉTODO CORREGIDO**
-     * Ahora devuelve el valor exacto del dado, sin ninguna bonificación.
-     * @return El resultado del dado (un número del 1 al 6).
-     */
     public int lanzarDado() {
         return dado.lanzar();
     }
@@ -105,5 +100,16 @@ public class Juego {
         Casilla c = tablero.getCasillaEnPosicion(pos);
         if (c == null || c.getCategoria() == null) return null;
         return servicioPreguntas.seleccionarPreguntaAleatoria(c.getCategoria());
+    }
+
+    /**
+     * **MÉTODO AÑADIDO PARA CORREGIR EL ERROR**
+     * Obtiene una pregunta aleatoria para una categoría específica.
+     * @param categoria La categoría de la pregunta deseada.
+     * @return Un objeto PreguntaOriginal o null si no hay preguntas.
+     */
+    public PreguntaOriginal getPreguntaParaCategoria(CategoriaTrivia categoria) {
+        if (categoria == null) return null;
+        return servicioPreguntas.seleccionarPreguntaAleatoria(categoria);
     }
 }
