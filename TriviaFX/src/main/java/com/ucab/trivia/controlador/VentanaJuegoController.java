@@ -73,8 +73,8 @@ public class VentanaJuegoController {
     private void dibujarTablero() {
         panelTablero.getChildren().clear();
         mapaPosicionACoordenadas = new HashMap<>();
-        double centroX = panelTablero.getPrefWidth() / 2;
-        double centroY = panelTablero.getPrefHeight() / 2;
+        double centroX = 336;
+        double centroY = 336;
         double radioCirculo = 280;
         double tamanoCasilla = 38;
 
@@ -125,7 +125,7 @@ public class VentanaJuegoController {
 
     private void dibujarFichasJugadores() {
         mapaFichasGraficas = new HashMap<>();
-        Color[] coloresBorde = {Color.GHOSTWHITE, Color.BLACK, Color.DARKRED, Color.DARKBLUE, Color.DARKGREEN, Color.GOLD};
+        Color[] coloresBorde = {Color.WHITE, Color.BLACK, Color.DARKRED, Color.DARKBLUE, Color.DARKGREEN, Color.GOLD};
         for (int i = 0; i < juego.getJugadores().size(); i++) {
             Jugador jugador = juego.getJugadores().get(i);
             Group fichaGrafica = crearFichaGrafica(jugador, coloresBorde[i % coloresBorde.length]);
@@ -172,7 +172,7 @@ public class VentanaJuegoController {
             labelNombre.setStyle("-fx-font-weight: bold;");
             Posicion pos = j.getPosicionActual();
             Casilla casilla = juego.getTablero().getCasillaEnPosicion(pos);
-            String infoPosicion = pos.toString();
+            String infoPosicion = (pos != null) ? pos.toString() : "N/A";
             if (casilla != null && casilla.getCategoria() != null) infoPosicion += " (" + casilla.getCategoria().getNombreMostrado() + ")";
             Label labelPosicion = new Label("Ubicación: " + infoPosicion);
             labelPosicion.setFont(Font.font(11));
