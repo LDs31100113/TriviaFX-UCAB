@@ -33,7 +33,7 @@ public class Juego {
 
     public void guardarEstadoActualDelJuego() {
         if (jugadores != null && !jugadores.isEmpty()) {
-            EstadoJuegoGuardado estadoActual = new EstadoJuegoGuardado(new ArrayList<>(jugadores), indiceJugadorActual);
+            EstadoJuegoGuardado estadoActual = new EstadoJuegoGuardado(new ArrayList<>(jugadores), this.indiceJugadorActual);
             servicioDatos.guardarPartida(estadoActual);
         }
     }
@@ -102,12 +102,6 @@ public class Juego {
         return servicioPreguntas.seleccionarPreguntaAleatoria(c.getCategoria());
     }
 
-    /**
-     * **MÉTODO AÑADIDO PARA CORREGIR EL ERROR**
-     * Obtiene una pregunta aleatoria para una categoría específica.
-     * @param categoria La categoría de la pregunta deseada.
-     * @return Un objeto PreguntaOriginal o null si no hay preguntas.
-     */
     public PreguntaOriginal getPreguntaParaCategoria(CategoriaTrivia categoria) {
         if (categoria == null) return null;
         return servicioPreguntas.seleccionarPreguntaAleatoria(categoria);

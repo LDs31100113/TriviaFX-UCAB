@@ -1,12 +1,10 @@
 package com.ucab.trivia.modelo;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.EnumMap;
 import java.util.Map;
 
-/**
- * Representa a un jugador dentro de una partida. Contiene su perfil,
- * su estado en el juego (ficha, posición) y sus estadísticas para la partida actual.
- */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Jugador {
     private String alias;
     private String email;
@@ -26,18 +24,11 @@ public class Jugador {
         this.correctasEnPartida = new EnumMap<>(CategoriaTrivia.class);
     }
 
-    /**
-     * Registra una respuesta correcta para el jugador, actualizando el contador
-     * por categoría y el tiempo total de respuesta.
-     * @param categoria La categoría de la pregunta correcta.
-     * @param tiempoMs El tiempo que tardó en responder.
-     */
     public void registrarRespuestaCorrecta(CategoriaTrivia categoria, long tiempoMs) {
         correctasEnPartida.merge(categoria, 1, Integer::sum);
         this.tiempoTotalEnPartidaMs += tiempoMs;
     }
 
-    // Getters y Setters para el estado y la persistencia.
     public String getAlias() { return alias; }
     public void setAlias(String alias) { this.alias = alias; }
     public String getEmail() { return email; }
