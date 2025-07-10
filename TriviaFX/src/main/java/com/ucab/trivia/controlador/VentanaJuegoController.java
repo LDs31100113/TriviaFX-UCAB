@@ -23,8 +23,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * Controlador para la vista principal del juego (VentanaJuego.fxml).
+ * Maneja toda la interacción del usuario durante la partida, el dibujado del tablero,
+ * la actualización de la interfaz y la comunicación con el modelo (la clase Juego).
+ */
 public class VentanaJuegoController {
 
+    //<editor-fold desc="Variables FXML">
     @FXML private AnchorPane panelTablero;
     @FXML private Label labelTurno;
     @FXML private VBox panelInfoJugadores;
@@ -32,7 +38,9 @@ public class VentanaJuegoController {
     @FXML private Label labelResultadoDado;
     @FXML private Label labelInfoJuego;
     @FXML private Button btnRendirse;
+    //</editor-fold>
 
+    // --- Lógica y Datos del Controlador ---
     private Juego juego;
     private ServicioDatos servicioDatos;
     private Map<Posicion, Point2D> mapaPosicionACoordenadas;
@@ -40,10 +48,20 @@ public class VentanaJuegoController {
     private boolean turnoEnProceso = false;
     private GestorVistas gestorVistas;
 
+    /**
+     * Inyecta la dependencia del gestor de vistas para permitir la navegación entre escenas.
+     * @param gestorVistas La instancia única del gestor de vistas.
+     */
     public void setGestorVistas(GestorVistas gestorVistas) {
         this.gestorVistas = gestorVistas;
     }
 
+    /**
+     * Punto de entrada principal para este controlador. Es llamado por el GestorVistas.
+     * Configura una partida nueva o carga una existente, y prepara la interfaz inicial.
+     * @param perfiles La lista de jugadores seleccionados para una nueva partida (es null si se carga).
+     * @param esPartidaCargada true si se debe cargar una partida existente.
+     */
     public void iniciarJuego(List<PerfilJugador> perfiles, boolean esPartidaCargada) {
         this.servicioDatos = new ServicioDatos();
         if (esPartidaCargada) {
@@ -70,6 +88,10 @@ public class VentanaJuegoController {
         juego.guardarEstadoActualDelJuego();
     }
 
+    /**
+     * Dibuja el tablero de juego (círculo, rayos y centro) de forma programática
+     * creando rectángulos de JavaFX y posicionándolos en el AnchorPane.
+     */
     private void dibujarTablero() {
         panelTablero.getChildren().clear();
         mapaPosicionACoordenadas = new HashMap<>();
@@ -103,6 +125,13 @@ public class VentanaJuegoController {
         mapaPosicionACoordenadas.put(Posicion.enCentro(), new Point2D(centroX, centroY));
     }
 
+    /**
+     * Método de ayuda para crear un único rectángulo de JavaFX que representa una casilla.
+     * @param x Coordenada X del centro de la casilla.
+     * @param y Coordenada Y del centro de la casilla.
+     * @param tamano El tamaño (ancho y alto) de la casilla.
+     * @param casilla El objeto Casilla del modelo para obtener su color y propiedades.
+     */
     private void crearRectanguloCasilla(double x, double y, double tamano, Casilla casilla) {
         Rectangle rect = new Rectangle(x - tamano / 2, y - tamano / 2, tamano, tamano);
         rect.setStroke(Color.BLACK);
@@ -118,14 +147,22 @@ public class VentanaJuegoController {
         panelTablero.getChildren().add(rect);
     }
 
+    /**
+     * Devuelve un color de JavaFX basado en la categoría de la pregunta.
+     * @param cat La categoría del enum.
+     * @return Un objeto Color.
+     */
     private Color getColorParaCategoria(CategoriaTrivia cat) {
         if (cat == null) return Color.WHITE;
         return Color.web(cat.getColorWeb());
     }
 
+    /**
+     * Dibuja las fichas gráficas de todos los jugadores en el tablero por primera vez.
+     */
     private void dibujarFichasJugadores() {
         mapaFichasGraficas = new HashMap<>();
-        Color[] coloresBorde = {Color.WHITE, Color.BLACK, Color.DARKRED, Color.DARKBLUE, Color.DARKGREEN, Color.GOLD};
+        Color[] coloresBorde = {Color.GHOSTWHITE, Color.BLACK, Color.DARKRED, Color.DARKBLUE, Color.DARKGREEN, Color.GOLD};
         for (int i = 0; i < juego.getJugadores().size(); i++) {
             Jugador jugador = juego.getJugadores().get(i);
             Group fichaGrafica = crearFichaGrafica(jugador, coloresBorde[i % coloresBorde.length]);
@@ -134,6 +171,12 @@ public class VentanaJuegoController {
         }
     }
 
+    /**
+     * Crea la ficha gráfica de un jugador, compuesta por 6 arcos ("quesitos").
+     * @param jugador El jugador para el cual se crea la ficha.
+     * @param colorBorde El color del borde de la ficha para diferenciarla.
+     * @return Un objeto Group que contiene todos los elementos gráficos de la ficha.
+     */
     private Group crearFichaGrafica(Jugador jugador, Color colorBorde) {
         Group quesitoGroup = new Group();
         double radioFicha = 12.0;
@@ -159,6 +202,10 @@ public class VentanaJuegoController {
         return quesitoGroup;
     }
 
+    /**
+     * Actualiza toda la interfaz de usuario para reflejar el estado actual del juego.
+     * Esto incluye el turno, el panel de información de todos los jugadores y la posición de las fichas.
+     */
     private void actualizarVistaCompleta() {
         Jugador jugadorActual = juego.getJugadorActual();
         if (jugadorActual == null) return;
@@ -196,6 +243,9 @@ public class VentanaJuegoController {
         btnRendirse.setDisable(turnoEnProceso);
     }
 
+    /**
+     * Mueve las fichas gráficas de los jugadores a sus posiciones lógicas actuales en el tablero.
+     */
     private void actualizarPosicionesFichas() {
         for (Jugador j : juego.getJugadores()) {
             Node fichaGrafica = mapaFichasGraficas.get(j);
@@ -213,6 +263,9 @@ public class VentanaJuegoController {
         }
     }
 
+    /**
+     * Maneja el evento de clic en el botón "Lanzar Dado".
+     */
     @FXML
     private void onLanzarDado() {
         turnoEnProceso = true;
@@ -231,6 +284,10 @@ public class VentanaJuegoController {
         procesarLlegadaACasilla();
     }
 
+    /**
+     * Procesa las acciones que deben ocurrir después de que un jugador llega a una nueva casilla.
+     * Esto incluye manejar casillas especiales, hacer preguntas y actualizar el estado del juego.
+     */
     private void procesarLlegadaACasilla() {
         Platform.runLater(() -> {
             actualizarVistaCompleta();
@@ -244,7 +301,7 @@ public class VentanaJuegoController {
                     turnoEnProceso = false;
                     actualizarVistaCompleta();
                 }
-                juego.guardarEstadoActualDelJuego();
+                guardarPartidaActual();
                 return;
             }
 
@@ -253,7 +310,7 @@ public class VentanaJuegoController {
                 labelInfoJuego.setText("¡Casilla Especial! Vuelves a lanzar.");
                 turnoEnProceso = false;
                 actualizarVistaCompleta();
-                juego.guardarEstadoActualDelJuego();
+                guardarPartidaActual();
                 return;
             }
 
@@ -263,7 +320,7 @@ public class VentanaJuegoController {
                 juego.pasarTurno();
                 turnoEnProceso = false;
                 actualizarVistaCompleta();
-                juego.guardarEstadoActualDelJuego();
+                guardarPartidaActual();
                 return;
             }
 
@@ -293,10 +350,15 @@ public class VentanaJuegoController {
                 turnoEnProceso = false;
             }
             actualizarVistaCompleta();
-            juego.guardarEstadoActualDelJuego();
+            guardarPartidaActual();
         });
     }
 
+    /**
+     * Actualiza el color de los "quesitos" en la ficha gráfica de un jugador.
+     * @param fichaGrafica El objeto Group que representa la ficha.
+     * @param ficha El objeto Ficha del modelo con el estado de las categorías.
+     */
     private void actualizarGraficoDeFicha(Group fichaGrafica, Ficha ficha) {
         Map<CategoriaTrivia, Boolean> cats = ficha.getCategoriasObtenidas();
         CategoriaTrivia[] todasLasCategorias = CategoriaTrivia.values();
@@ -310,6 +372,9 @@ public class VentanaJuegoController {
         }
     }
 
+    /**
+     * Maneja el flujo de juego cuando un jugador intenta ganar desde el centro.
+     */
     private void manejarIntentoDeVictoria() {
         Jugador jugadorActual = juego.getJugadorActual();
         List<CategoriaTrivia> opciones = new ArrayList<>(List.of(CategoriaTrivia.values()));
@@ -320,7 +385,7 @@ public class VentanaJuegoController {
 
         if(result.isPresent()){
             CategoriaTrivia categoriaElegida = result.get();
-            PreguntaOriginal preguntaFinal = juego.getPreguntaParaCategoria(categoriaElegida);
+            PreguntaOriginal preguntaFinal = juego.getPreguntaParaPosicion(Posicion.enCirculo(0));
 
             if (preguntaFinal == null) {
                 mostrarAlerta("¡Ganador!", "No hay preguntas para " + categoriaElegida + ". ¡Ganas por defecto!");
@@ -340,7 +405,7 @@ public class VentanaJuegoController {
                 juego.pasarTurno();
                 turnoEnProceso = false;
                 actualizarVistaCompleta();
-                juego.guardarEstadoActualDelJuego();
+                guardarPartidaActual();
             }
         } else {
             labelInfoJuego.setText("Elección cancelada. Sigues en el centro.");
@@ -349,6 +414,9 @@ public class VentanaJuegoController {
         }
     }
 
+    /**
+     * Maneja el evento de clic en el botón "Rendirse".
+     */
     @FXML private void onRendirse() {
         Alert confirmacion = new Alert(Alert.AlertType.CONFIRMATION, "¿Estás seguro?", ButtonType.YES, ButtonType.NO);
         confirmacion.setTitle("Confirmar Rendición");
@@ -366,16 +434,23 @@ public class VentanaJuegoController {
             } else {
                 juego.pasarTurno();
                 actualizarVistaCompleta();
-                juego.guardarEstadoActualDelJuego();
+                guardarPartidaActual();
             }
         }
     }
 
+    /**
+     * Maneja el evento de clic en el botón "Finalizar Partida".
+     */
     @FXML private void onFinalizarPartida() {
         finalizarYGuardarEstadisticas(null);
         gestorVistas.mostrarMenuPrincipal();
     }
 
+    /**
+     * Guarda las estadísticas globales de la partida y deshabilita los controles del juego.
+     * @param ganador El jugador que ha ganado la partida, o null si nadie ganó.
+     */
     private void finalizarYGuardarEstadisticas(Jugador ganador) {
         btnLanzarDado.setDisable(true);
         btnRendirse.setDisable(true);
@@ -394,6 +469,21 @@ public class VentanaJuegoController {
         servicioDatos.guardarEstadisticas(estadisticasGlobales);
     }
 
+    /**
+     * Guarda el estado actual del juego en un archivo JSON.
+     */
+    private void guardarPartidaActual() {
+        if(juego != null && juego.getJugadorActual() != null) {
+            EstadoJuegoGuardado estado = new EstadoJuegoGuardado(juego.getJugadores(), juego.getJugadores().indexOf(juego.getJugadorActual()));
+            servicioDatos.guardarPartida(estado);
+        }
+    }
+
+    /**
+     * Muestra un diálogo al usuario para que ingrese su respuesta a una pregunta.
+     * @param pregunta El objeto PreguntaOriginal a mostrar.
+     * @return true si la respuesta fue correcta, false en caso contrario.
+     */
     private boolean mostrarDialogoPregunta(PreguntaOriginal pregunta) {
         TextInputDialog dialog = new TextInputDialog();
         dialog.setTitle("Pregunta de Trivia");
@@ -403,6 +493,10 @@ public class VentanaJuegoController {
         return result.map(s -> s.trim().equalsIgnoreCase(pregunta.getRespuesta().trim())).orElse(false);
     }
 
+    /**
+     * Muestra un diálogo de confirmación para que el usuario decida si entra en un rayo.
+     * @return true si el usuario presiona "OK", false en caso contrario.
+     */
     private boolean mostrarDialogoEleccionRayo() {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION, "¿Deseas moverte hacia el centro por el rayo?", ButtonType.YES, ButtonType.NO);
         alert.setTitle("Decisión de Movimiento");
@@ -410,6 +504,11 @@ public class VentanaJuegoController {
         return alert.showAndWait().filter(b -> b == ButtonType.YES).isPresent();
     }
 
+    /**
+     * Muestra una ventana de alerta informativa simple.
+     * @param titulo El título de la ventana.
+     * @param mensaje El contenido del mensaje.
+     */
     private void mostrarAlerta(String titulo, String mensaje) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle(titulo);
