@@ -23,14 +23,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-/**
- * Controlador para la vista principal del juego (VentanaJuego.fxml).
- * Maneja toda la interacción del usuario durante la partida, el dibujado del tablero,
- * la actualización de la interfaz y la comunicación con el modelo (la clase Juego).
- */
 public class VentanaJuegoController {
 
-    //<editor-fold desc="Variables FXML">
     @FXML private AnchorPane panelTablero;
     @FXML private Label labelTurno;
     @FXML private VBox panelInfoJugadores;
@@ -38,9 +32,7 @@ public class VentanaJuegoController {
     @FXML private Label labelResultadoDado;
     @FXML private Label labelInfoJuego;
     @FXML private Button btnRendirse;
-    //</editor-fold>
 
-    // --- Lógica y Datos del Controlador ---
     private Juego juego;
     private ServicioDatos servicioDatos;
     private Map<Posicion, Point2D> mapaPosicionACoordenadas;
@@ -48,50 +40,59 @@ public class VentanaJuegoController {
     private boolean turnoEnProceso = false;
     private GestorVistas gestorVistas;
 
-    /**
-     * Inyecta la dependencia del gestor de vistas para permitir la navegación entre escenas.
-     * @param gestorVistas La instancia única del gestor de vistas.
-     */
     public void setGestorVistas(GestorVistas gestorVistas) {
         this.gestorVistas = gestorVistas;
     }
 
-    /**
-     * Punto de entrada principal para este controlador. Es llamado por el GestorVistas.
-     * Configura una partida nueva o carga una existente, y prepara la interfaz inicial.
-     * @param perfiles La lista de jugadores seleccionados para una nueva partida (es null si se carga).
-     * @param esPartidaCargada true si se debe cargar una partida existente.
-     */
     public void iniciarJuego(List<PerfilJugador> perfiles, boolean esPartidaCargada) {
         this.servicioDatos = new ServicioDatos();
         if (esPartidaCargada) {
             EstadoJuegoGuardado estado = servicioDatos.cargarPartidaGuardada();
             if (estado != null) {
                 this.juego = new Juego(estado);
+                Platform.runLater(() -> {
+                    dibujarTablero();
+                    dibujarFichasJugadores();
+                    actualizarVistaCompleta();
+                    labelInfoJuego.setText("Partida cargada. Turno de " + juego.getJugadorActual().getAlias() + ".");
+                });
             } else {
                 mostrarAlerta("Error", "No se pudo cargar la partida guardada.");
                 gestorVistas.mostrarMenuPrincipal();
-                return;
             }
         } else {
-            if (perfiles == null || perfiles.isEmpty()) {
-                mostrarAlerta("Error", "No se seleccionaron jugadores.");
-                gestorVistas.mostrarMenuPrincipal();
-                return;
-            }
             this.juego = new Juego(perfiles);
+            Platform.runLater(this::determinarPrimerJugadorSecuencia);
         }
+    }
+
+    private void determinarPrimerJugadorSecuencia() {
+        btnLanzarDado.setDisable(true);
+        labelInfoJuego.setText("Lanzando dados para decidir quién empieza...");
+        List<Integer> lanzamientos = new ArrayList<>();
+        int maxLanzamiento = -1;
+        int indiceGanador = 0;
+
+        for (int i = 0; i < juego.getJugadores().size(); i++) {
+            Jugador j = juego.getJugadores().get(i);
+            int lanzamiento = juego.lanzarDado();
+            lanzamientos.add(lanzamiento);
+            mostrarAlerta("Lanzamiento Inicial", j.getAlias() + " ha sacado un " + lanzamiento);
+            if (lanzamiento > maxLanzamiento) {
+                maxLanzamiento = lanzamiento;
+                indiceGanador = i;
+            }
+        }
+
+        juego.setIndiceJugadorActual(indiceGanador);
+        labelInfoJuego.setText("El lanzamiento más alto fue " + maxLanzamiento + ". ¡Empieza " + juego.getJugadorActual().getAlias() + "!");
+
         dibujarTablero();
         dibujarFichasJugadores();
         actualizarVistaCompleta();
-        labelInfoJuego.setText("¡Partida iniciada! Es el turno de " + juego.getJugadorActual().getAlias() + ".");
-        juego.guardarEstadoActualDelJuego();
+        guardarPartidaActual();
     }
 
-    /**
-     * Dibuja el tablero de juego (círculo, rayos y centro) de forma programática
-     * creando rectángulos de JavaFX y posicionándolos en el AnchorPane.
-     */
     private void dibujarTablero() {
         panelTablero.getChildren().clear();
         mapaPosicionACoordenadas = new HashMap<>();
@@ -125,13 +126,6 @@ public class VentanaJuegoController {
         mapaPosicionACoordenadas.put(Posicion.enCentro(), new Point2D(centroX, centroY));
     }
 
-    /**
-     * Método de ayuda para crear un único rectángulo de JavaFX que representa una casilla.
-     * @param x Coordenada X del centro de la casilla.
-     * @param y Coordenada Y del centro de la casilla.
-     * @param tamano El tamaño (ancho y alto) de la casilla.
-     * @param casilla El objeto Casilla del modelo para obtener su color y propiedades.
-     */
     private void crearRectanguloCasilla(double x, double y, double tamano, Casilla casilla) {
         Rectangle rect = new Rectangle(x - tamano / 2, y - tamano / 2, tamano, tamano);
         rect.setStroke(Color.BLACK);
@@ -147,19 +141,11 @@ public class VentanaJuegoController {
         panelTablero.getChildren().add(rect);
     }
 
-    /**
-     * Devuelve un color de JavaFX basado en la categoría de la pregunta.
-     * @param cat La categoría del enum.
-     * @return Un objeto Color.
-     */
     private Color getColorParaCategoria(CategoriaTrivia cat) {
         if (cat == null) return Color.WHITE;
         return Color.web(cat.getColorWeb());
     }
 
-    /**
-     * Dibuja las fichas gráficas de todos los jugadores en el tablero por primera vez.
-     */
     private void dibujarFichasJugadores() {
         mapaFichasGraficas = new HashMap<>();
         Color[] coloresBorde = {Color.GHOSTWHITE, Color.BLACK, Color.DARKRED, Color.DARKBLUE, Color.DARKGREEN, Color.GOLD};
@@ -171,12 +157,6 @@ public class VentanaJuegoController {
         }
     }
 
-    /**
-     * Crea la ficha gráfica de un jugador, compuesta por 6 arcos ("quesitos").
-     * @param jugador El jugador para el cual se crea la ficha.
-     * @param colorBorde El color del borde de la ficha para diferenciarla.
-     * @return Un objeto Group que contiene todos los elementos gráficos de la ficha.
-     */
     private Group crearFichaGrafica(Jugador jugador, Color colorBorde) {
         Group quesitoGroup = new Group();
         double radioFicha = 12.0;
@@ -202,10 +182,6 @@ public class VentanaJuegoController {
         return quesitoGroup;
     }
 
-    /**
-     * Actualiza toda la interfaz de usuario para reflejar el estado actual del juego.
-     * Esto incluye el turno, el panel de información de todos los jugadores y la posición de las fichas.
-     */
     private void actualizarVistaCompleta() {
         Jugador jugadorActual = juego.getJugadorActual();
         if (jugadorActual == null) return;
@@ -243,9 +219,6 @@ public class VentanaJuegoController {
         btnRendirse.setDisable(turnoEnProceso);
     }
 
-    /**
-     * Mueve las fichas gráficas de los jugadores a sus posiciones lógicas actuales en el tablero.
-     */
     private void actualizarPosicionesFichas() {
         for (Jugador j : juego.getJugadores()) {
             Node fichaGrafica = mapaFichasGraficas.get(j);
@@ -263,31 +236,42 @@ public class VentanaJuegoController {
         }
     }
 
-    /**
-     * Maneja el evento de clic en el botón "Lanzar Dado".
-     */
     @FXML
     private void onLanzarDado() {
         turnoEnProceso = true;
         actualizarVistaCompleta();
+
         int resultado = juego.lanzarDado();
         labelResultadoDado.setText("Resultado del Dado: " + resultado);
+
         Jugador jugadorActual = juego.getJugadorActual();
         Posicion posActual = jugadorActual.getPosicionActual();
+
+        int direccion = 1;
         boolean eligeEntrarRayo = false;
-        Casilla casillaActual = juego.getTablero().getCasillaEnPosicion(posActual);
-        if(casillaActual != null && casillaActual.isEsEntradaRayo()){
-            eligeEntrarRayo = mostrarDialogoEleccionRayo();
+
+        if(posActual.getTipo() == Posicion.TipoLugar.CENTRO) {
+            direccion = mostrarDialogoElegirRayoSalida();
+            if(direccion == -1) {
+                turnoEnProceso = false;
+                actualizarVistaCompleta();
+                return;
+            }
+        } else if (posActual.getTipo() == Posicion.TipoLugar.CIRCULO) {
+            direccion = mostrarDialogoElegirDireccionEnCirculo();
+            Casilla casillaActual = juego.getTablero().getCasillaEnPosicion(posActual);
+            if(casillaActual.isEsEntradaRayo()){
+                eligeEntrarRayo = mostrarDialogoEleccionEntrarRayo();
+            }
+        } else if (posActual.getTipo() == Posicion.TipoLugar.RAYO) {
+            direccion = mostrarDialogoElegirDireccionEnRayo();
         }
-        juego.moverJugador(jugadorActual, resultado, eligeEntrarRayo);
+
+        juego.moverJugador(jugadorActual, resultado, direccion, eligeEntrarRayo);
         labelInfoJuego.setText(jugadorActual.getAlias() + " se mueve a " + jugadorActual.getPosicionActual());
         procesarLlegadaACasilla();
     }
 
-    /**
-     * Procesa las acciones que deben ocurrir después de que un jugador llega a una nueva casilla.
-     * Esto incluye manejar casillas especiales, hacer preguntas y actualizar el estado del juego.
-     */
     private void procesarLlegadaACasilla() {
         Platform.runLater(() -> {
             actualizarVistaCompleta();
@@ -354,11 +338,6 @@ public class VentanaJuegoController {
         });
     }
 
-    /**
-     * Actualiza el color de los "quesitos" en la ficha gráfica de un jugador.
-     * @param fichaGrafica El objeto Group que representa la ficha.
-     * @param ficha El objeto Ficha del modelo con el estado de las categorías.
-     */
     private void actualizarGraficoDeFicha(Group fichaGrafica, Ficha ficha) {
         Map<CategoriaTrivia, Boolean> cats = ficha.getCategoriasObtenidas();
         CategoriaTrivia[] todasLasCategorias = CategoriaTrivia.values();
@@ -372,9 +351,6 @@ public class VentanaJuegoController {
         }
     }
 
-    /**
-     * Maneja el flujo de juego cuando un jugador intenta ganar desde el centro.
-     */
     private void manejarIntentoDeVictoria() {
         Jugador jugadorActual = juego.getJugadorActual();
         List<CategoriaTrivia> opciones = new ArrayList<>(List.of(CategoriaTrivia.values()));
@@ -414,9 +390,6 @@ public class VentanaJuegoController {
         }
     }
 
-    /**
-     * Maneja el evento de clic en el botón "Rendirse".
-     */
     @FXML private void onRendirse() {
         Alert confirmacion = new Alert(Alert.AlertType.CONFIRMATION, "¿Estás seguro?", ButtonType.YES, ButtonType.NO);
         confirmacion.setTitle("Confirmar Rendición");
@@ -439,18 +412,11 @@ public class VentanaJuegoController {
         }
     }
 
-    /**
-     * Maneja el evento de clic en el botón "Finalizar Partida".
-     */
     @FXML private void onFinalizarPartida() {
         finalizarYGuardarEstadisticas(null);
         gestorVistas.mostrarMenuPrincipal();
     }
 
-    /**
-     * Guarda las estadísticas globales de la partida y deshabilita los controles del juego.
-     * @param ganador El jugador que ha ganado la partida, o null si nadie ganó.
-     */
     private void finalizarYGuardarEstadisticas(Jugador ganador) {
         btnLanzarDado.setDisable(true);
         btnRendirse.setDisable(true);
@@ -469,9 +435,6 @@ public class VentanaJuegoController {
         servicioDatos.guardarEstadisticas(estadisticasGlobales);
     }
 
-    /**
-     * Guarda el estado actual del juego en un archivo JSON.
-     */
     private void guardarPartidaActual() {
         if(juego != null && juego.getJugadorActual() != null) {
             EstadoJuegoGuardado estado = new EstadoJuegoGuardado(juego.getJugadores(), juego.getJugadores().indexOf(juego.getJugadorActual()));
@@ -479,11 +442,6 @@ public class VentanaJuegoController {
         }
     }
 
-    /**
-     * Muestra un diálogo al usuario para que ingrese su respuesta a una pregunta.
-     * @param pregunta El objeto PreguntaOriginal a mostrar.
-     * @return true si la respuesta fue correcta, false en caso contrario.
-     */
     private boolean mostrarDialogoPregunta(PreguntaOriginal pregunta) {
         TextInputDialog dialog = new TextInputDialog();
         dialog.setTitle("Pregunta de Trivia");
@@ -493,22 +451,47 @@ public class VentanaJuegoController {
         return result.map(s -> s.trim().equalsIgnoreCase(pregunta.getRespuesta().trim())).orElse(false);
     }
 
-    /**
-     * Muestra un diálogo de confirmación para que el usuario decida si entra en un rayo.
-     * @return true si el usuario presiona "OK", false en caso contrario.
-     */
-    private boolean mostrarDialogoEleccionRayo() {
+    private boolean mostrarDialogoEleccionEntrarRayo() {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION, "¿Deseas moverte hacia el centro por el rayo?", ButtonType.YES, ButtonType.NO);
         alert.setTitle("Decisión de Movimiento");
         alert.setHeaderText("Estás en una entrada de rayo.");
         return alert.showAndWait().filter(b -> b == ButtonType.YES).isPresent();
     }
 
-    /**
-     * Muestra una ventana de alerta informativa simple.
-     * @param titulo El título de la ventana.
-     * @param mensaje El contenido del mensaje.
-     */
+    private int mostrarDialogoElegirDireccionEnCirculo() {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Elegir Dirección");
+        alert.setHeaderText("¿Hacia dónde quieres moverte en el círculo?");
+        ButtonType btnAdelante = new ButtonType("Adelante (Sentido Horario)");
+        ButtonType btnAtras = new ButtonType("Atrás (Sentido Anti-horario)");
+        alert.getButtonTypes().setAll(btnAdelante, btnAtras);
+        Optional<ButtonType> result = alert.showAndWait();
+        return result.map(bt -> bt == btnAdelante ? 1 : -1).orElse(1);
+    }
+
+    private int mostrarDialogoElegirDireccionEnRayo() {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Elegir Dirección");
+        alert.setHeaderText("Estás en un rayo. ¿Hacia dónde quieres moverte?");
+        ButtonType btnHaciaCentro = new ButtonType("Hacia el Centro");
+        ButtonType btnHaciaCirculo = new ButtonType("Hacia el Círculo");
+        alert.getButtonTypes().setAll(btnHaciaCentro, btnHaciaCirculo);
+        Optional<ButtonType> result = alert.showAndWait();
+        return result.map(bt -> bt == btnHaciaCentro ? 1 : -1).orElse(1);
+    }
+
+    private int mostrarDialogoElegirRayoSalida() {
+        List<String> opcionesRayo = new ArrayList<>();
+        for (int i = 0; i < TableroGrafico.NUMERO_RAYOS; i++) {
+            opcionesRayo.add("Rayo " + (i + 1));
+        }
+        ChoiceDialog<String> dialog = new ChoiceDialog<>(opcionesRayo.get(0), opcionesRayo);
+        dialog.setTitle("Salida del Centro");
+        dialog.setHeaderText("Elige un rayo para salir del centro.");
+        Optional<String> result = dialog.showAndWait();
+        return result.map(opcionesRayo::indexOf).orElse(-1);
+    }
+
     private void mostrarAlerta(String titulo, String mensaje) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle(titulo);
